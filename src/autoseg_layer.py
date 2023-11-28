@@ -73,7 +73,6 @@ class AutosegLayer(QGraphicsRectItem):
         bbox = np.squeeze(bbox)
         i,j = np.where(bbox != 0)
 
-        print(f'x: {x}   y: {y} \nxmin: {xmin}  xmax:{xmax}\nymin:{ymin}  ymax:{ymax}')
         for index in zip(i,j):
             abs_y = index[0]+ymin
             abs_x = index[1]+xmin
