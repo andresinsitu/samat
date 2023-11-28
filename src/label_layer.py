@@ -7,19 +7,19 @@ import numpy as np
 
 
 class LabelLayer(QGraphicsRectItem):
-    def __init__(self, parent, sam_signal):
+    def __init__(self, parent, autoseg_signal):
         super().__init__(parent)
         self.setOpacity(0.5)
         self.setPen(QPen(Qt.PenStyle.NoPen))
         self.setAcceptedMouseButtons(Qt.MouseButton.LeftButton)
 
-        self._sam_signal = sam_signal
+        self._autoseg_signal = autoseg_signal
         self._erase_state = False
         self._brush_color = QColor(0, 0, 0)
         self._brush_size = 50
         self._pixmap = QPixmap()
         self._line = QLineF()
-        self._sam_mode = False
+        self._autoseg_mode = False
 
     def set_brush_color(self, color: QColor):
         self.set_eraser(False)
@@ -42,14 +42,14 @@ class LabelLayer(QGraphicsRectItem):
         painter.end()
         self.update()
 
-    def _draw_bundle(self, bundle: np.ndarray):
+    def _draw_bundle(self, bundle: list):
         painter = QPainter(self._pixmap)
         if self._erase_state:
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
         pen = QPen(self._brush_color, 1)
         painter.setPen(pen)
-        for x, y in bundle:
-            painter.drawPoint(x, y)
+        for point in bundle:
+            painter.drawPoint(point[0],point[1])
         self._bundle_to_draw = None
         painter.end()
         self.update()
@@ -69,8 +69,8 @@ class LabelLayer(QGraphicsRectItem):
     def export_pixmap(self, out_path: Path):
         self._pixmap.save(str(out_path))
 
-    def handle_bundle(self, bundle: np.ndarray):
-        if self._sam_mode:
+    def handle_bundle(self, bundle: list):
+        if self._autoseg_mode:
             self._draw_bundle(bundle)
 
     def paint(self, painter, option, widget=None):
@@ -80,17 +80,25 @@ class LabelLayer(QGraphicsRectItem):
         painter.restore()
 
     def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        self._sam_signal.emit(event.pos())
-        self._line.setP1(event.pos())
-        self._line.setP2(event.pos())
+        #TODO: hacer que el emit sea de los píxeles del pincel
+        if self._autoseg_mode and not self._erase_state:
+            self._autoseg_signal.emit(event.pos(), self._brush_size)
+        else:
+            self._line.setP1(event.pos())
+            self._line.setP2(event.pos())
         super().mousePressEvent(event)
         event.accept()
 
     def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        #TODO: hacer que el emit sea de los píxeles del pincel
         self._line.setP2(event.pos())
-        self._draw_line()
+        if self._autoseg_mode and not self._erase_state:
+            self._autoseg_signal.emit(event.pos(), self._brush_size)
+        else:
+            self._draw_line()
         self._line.setP1(event.pos())
         super().mouseMoveEvent(event)
 
-    def handle_sam_mode(self, is_sam: bool):
-        self._sam_mode = is_sam
+    def handle_autoseg_mode(self, is_autoseg: bool):
+        self._autoseg_mode = is_autoseg
+

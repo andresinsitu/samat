@@ -21,18 +21,18 @@ from .graphics_view import GraphicsView
 
 class MainWindow(QMainWindow):
     brush_feedback = pyqtSignal(int)  # allows QSlider react on mouse wheel
-    sam_signal = pyqtSignal(bool)  # used to propagate sam mode to all widgets
+    autoseg_signal = pyqtSignal(bool)  # used to propagate autosegmentation mode to all widgets
 
     def __init__(self, workdir: str):
         super(MainWindow, self).__init__()
-        self.setWindowTitle("sam_annotator")
+        self.setWindowTitle("Annotator")
         self.resize(1000, 1000)
 
         self._workdir = Path(workdir)
         self._class_dir = self._workdir / "classes.json"
         self._image_dir = self._workdir / "images"
         self._label_dir = self._workdir / "labels"
-        self._sam_dir = self._workdir / "sam"
+        self._autoseg_dir = self._workdir / "autoseg"
         self._label_dir.mkdir(exist_ok=True)
         self._image_stems = [path.stem for path in sorted(self._image_dir.iterdir())]
         with open(self._class_dir, "r") as f:
@@ -43,7 +43,7 @@ class MainWindow(QMainWindow):
 
         self.brush_feedback.connect(self.on_brush_size_change)
         self._graphics_view = GraphicsView(self.brush_feedback)
-        self.sam_signal.connect(self._graphics_view.handle_sam_signal)
+        self.autoseg_signal.connect(self._graphics_view.handle_autoseg_signal)
 
         # Dataset group
         ds_group = QGroupBox(self.tr("Dataset"))
@@ -67,30 +67,30 @@ class MainWindow(QMainWindow):
         self.ls_label_slider.setSliderPosition(50)
         self.ls_label_slider.valueChanged.connect(self.on_ls_label_slider_change)
 
-        self.ls_sam_value = QLabel()
-        self.ls_sam_value.setText("SAM opacity: 0%")
+        self.ls_autoseg_value = QLabel()
+        self.ls_autoseg_value.setText("autoseg opacity: 20%")
 
-        self.ls_sam_slider = QSlider()
-        self.ls_sam_slider.setOrientation(Qt.Orientation.Horizontal)
-        self.ls_sam_slider.setMinimum(0)
-        self.ls_sam_slider.setMaximum(100)
-        self.ls_sam_slider.setSliderPosition(0)
-        self.ls_sam_slider.valueChanged.connect(self.on_ls_sam_slider_change)
+        self.ls_autoseg_slider = QSlider()
+        self.ls_autoseg_slider.setOrientation(Qt.Orientation.Horizontal)
+        self.ls_autoseg_slider.setMinimum(0)
+        self.ls_autoseg_slider.setMaximum(100)
+        self.ls_autoseg_slider.setSliderPosition(0)
+        self.ls_autoseg_slider.valueChanged.connect(self.on_ls_autoseg_slider_change)
 
         ls_vlay = QVBoxLayout(ls_group)
         ls_vlay.addWidget(self.ls_label_value)
         ls_vlay.addWidget(self.ls_label_slider)
-        ls_vlay.addWidget(self.ls_sam_value)
-        ls_vlay.addWidget(self.ls_sam_slider)
+        ls_vlay.addWidget(self.ls_autoseg_value)
+        ls_vlay.addWidget(self.ls_autoseg_slider)
 
-        # SAM group
-        sam_group = QGroupBox(self.tr("SAM"))
+        # AUTOSEG group
+        autoseg_group = QGroupBox(self.tr("AUTOSEG"))
 
-        self.sam_checkbox = QCheckBox("SAM assistance")
-        self.sam_checkbox.stateChanged.connect(self.on_sam_change)
+        self.autoseg_checkbox = QCheckBox("AUTOSEG assistance")
+        self.autoseg_checkbox.stateChanged.connect(self.on_autoseg_change)
 
-        sam_vlay = QVBoxLayout(sam_group)
-        sam_vlay.addWidget(self.sam_checkbox)
+        autoseg_vlay = QVBoxLayout(autoseg_group)
+        autoseg_vlay.addWidget(self.autoseg_checkbox)
 
         # Brush size group
         bs_group = QGroupBox(self.tr("Brush"))
@@ -127,7 +127,7 @@ class MainWindow(QMainWindow):
 
         vlay = QVBoxLayout()
         vlay.addWidget(ds_group)
-        vlay.addWidget(sam_group)
+        vlay.addWidget(autoseg_group)
         vlay.addWidget(ls_group)
         vlay.addWidget(bs_group)
         vlay.addWidget(cs_group)
@@ -145,11 +145,11 @@ class MainWindow(QMainWindow):
         self.cs_list.setCurrentRow(0)
 
     @pyqtSlot(int)
-    def on_sam_change(self, state: int):
+    def on_autoseg_change(self, state: int):
         if state == Qt.CheckState.Checked:
-            self.sam_signal.emit(True)
+            self.autoseg_signal.emit(True)
         elif state == Qt.CheckState.Unchecked:
-            self.sam_signal.emit(False)
+            self.autoseg_signal.emit(False)
         else:
             print("unsupported check state")
 
@@ -159,9 +159,9 @@ class MainWindow(QMainWindow):
         self._graphics_view.set_label_opacity(value)
 
     @pyqtSlot(int)
-    def on_ls_sam_slider_change(self, value: int):
-        self.ls_sam_value.setText(f"SAM opacity: {value}%")
-        self._graphics_view.set_sam_opacity(value)
+    def on_ls_autoseg_slider_change(self, value: int):
+        self.ls_autoseg_value.setText(f"AUTOSEG opacity: {value}%")
+        self._graphics_view.set_autoseg_opacity(value)
 
     @pyqtSlot(int)
     def on_bs_slider_change(self, value: int):
@@ -188,8 +188,8 @@ class MainWindow(QMainWindow):
         name = f"{self._image_stems[self._curr_id]}.png"
         image_path = self._image_dir / name
         label_path = self._label_dir / name
-        sam_path = self._sam_dir / name
-        self._graphics_view.load_sample(image_path, label_path, sam_path)
+        autoseg_path = self._autoseg_dir / name
+        self._graphics_view.load_sample(image_path, label_path, autoseg_path)
         self.ds_label.setText(f"Sample: {name}")
 
     def load_latest_sample(self):
@@ -213,8 +213,8 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         if a0.key() == Qt.Key.Key_Space:
             self._graphics_view.reset_zoom()
-        elif a0.key() == Qt.Key.Key_S:
-            self.sam_checkbox.toggle()
+        elif a0.key() == Qt.Key.Key_A:
+            self.autoseg_checkbox.toggle()
         elif a0.key() == Qt.Key.Key_C:
             self._graphics_view.clear_label()
         elif a0.key() == Qt.Key.Key_E:

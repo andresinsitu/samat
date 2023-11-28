@@ -28,7 +28,7 @@ class GraphicsView(QGraphicsView):
         self._pan_mode = False
         self._last_pos = QPoint()
         self._brush_feedback = brush_feedback
-        self._sam_mode = False
+        self._autoseg_mode = False
 
         self.setScene(self._scene)
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
@@ -44,13 +44,13 @@ class GraphicsView(QGraphicsView):
     def set_label_opacity(self, value: int):
         self._scene.label_item.setOpacity(value / 100.0)
 
-    def set_sam_opacity(self, value: int):
-        self._scene.sam_item.setOpacity(value / 100.0)
+    def set_autoseg_opacity(self, value: int):
+        self._scene.autoseg_item.setOpacity(value / 100.0)
 
     @pyqtSlot(bool)
-    def handle_sam_signal(self, is_sam: bool):
-        self._sam_mode = is_sam
-        self._scene.handle_sam_mode(is_sam)
+    def handle_autoseg_signal(self, is_autoseg: bool):
+        self._autoseg_mode = is_autoseg
+        self._scene.handle_autoseg_mode(is_autoseg)
 
     def set_brush_color(self, color: QColor):
         self._scene.set_brush_color(color)
@@ -70,7 +70,7 @@ class GraphicsView(QGraphicsView):
     def save_label_to(self, path: Path):
         self._scene.save_label(path)
 
-    def load_sample(self, image_path: Path, label_path: Path, sam_path: Path):
+    def load_sample(self, image_path: Path, label_path: Path, autoseg_path: Path):
         image = QPixmap(str(image_path))
         self._scene.setSceneRect(QRectF(QPointF(), QSizeF(image.size())))
         self._scene.image_item.setPixmap(QPixmap(str(image_path)))
@@ -78,8 +78,8 @@ class GraphicsView(QGraphicsView):
             self._scene.label_item.set_image(str(label_path))
         else:
             self._scene.label_item.clear()
-        if sam_path.exists():
-            self._scene.sam_item.set_image(str(sam_path))
+        if autoseg_path.exists():
+            self._scene.autoseg_item.set_image(str(autoseg_path))
         self.fitInView(self._scene.image_item, Qt.AspectRatioMode.KeepAspectRatio)
         self.centerOn(self._scene.image_item)
 

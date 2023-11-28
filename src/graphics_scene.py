@@ -10,35 +10,36 @@ from PyQt5.QtCore import pyqtSignal, QPointF
 
 from .brush_cursor import BrushCursor
 from .label_layer import LabelLayer
-from .sam_layer import SamLayer
+from .autoseg_layer import AutosegLayer
 
 import numpy as np
 
 
 class GraphicsScene(QGraphicsScene):
-    label2sam_signal = pyqtSignal(QPointF)
-    sam2label_signal = pyqtSignal(np.ndarray)
+    #TODO: cambiar label2autoseg_signal a np.ndarray
+    label2autoseg_signal = pyqtSignal(QPointF,int)
+    autoseg2label_signal = pyqtSignal(list)
 
     def __init__(self, parent):
         super().__init__(parent)
         self._brush_size = 50
-        self._brush_step = 5
+        self._brush_step = 1
         self._brush_limits = (1, 150)
 
         self.image_item = QGraphicsPixmapItem()
-        self.sam_item = SamLayer(self.image_item, self.sam2label_signal)
-        self.label_item = LabelLayer(self.image_item, self.label2sam_signal)
+        self.autoseg_item = AutosegLayer(self.image_item, self.autoseg2label_signal)
+        self.label_item = LabelLayer(self.image_item, self.label2autoseg_signal)
         self.cursor_item = BrushCursor(self.image_item)
 
-        self.label2sam_signal.connect(self.sam_item.handle_click)
-        self.sam2label_signal.connect(self.label_item.handle_bundle)
+        self.label2autoseg_signal.connect(self.autoseg_item.handle_click)
+        self.autoseg2label_signal.connect(self.label_item.handle_bundle)
 
         self.addItem(self.image_item)
 
-    def handle_sam_mode(self, is_sam: bool):
-        self.sam_item.handle_sam_mode(is_sam)
-        self.label_item.handle_sam_mode(is_sam)
-        self._sam_mode = is_sam
+    def handle_autoseg_mode(self, is_autoseg: bool):
+        self.autoseg_item.handle_autoseg_mode(is_autoseg)
+        self.label_item.handle_autoseg_mode(is_autoseg)
+        self._autoseg_mode = is_autoseg
 
     def set_eraser(self, value):
         self.label_item.set_eraser(value)

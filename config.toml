@@ -1,3 +1,3 @@
 [paths]
-data = "example_dataset" # enter path to your dataset here
+data = "../dataset_pintura_test" # enter path to your dataset here
 sam_weights = "/your/path/to/sam_weights.pth"
