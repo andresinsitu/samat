@@ -34,6 +34,7 @@ class MainWindow(QMainWindow):
         self._label_dir = self._workdir / "labels"
         self._autoseg_dir = self._workdir / "autoseg"
         self._label_dir.mkdir(exist_ok=True)
+        self._autoseg_dir.mkdir(exist_ok=True)
         self._image_stems = [path.stem for path in sorted(self._image_dir.iterdir())]
         with open(self._class_dir, "r") as f:
             self._classes = json.loads("".join(f.readlines()))["classes"]

@@ -2,6 +2,7 @@ from PyQt5.QtCore import Qt, QPoint, QRectF, QPointF
 from PyQt5.QtWidgets import QGraphicsRectItem
 from PyQt5.QtGui import QPixmap, QPen
 import numpy as np
+from .create_mask import create_mask
 
 
 class AutosegLayer(QGraphicsRectItem):
@@ -16,10 +17,15 @@ class AutosegLayer(QGraphicsRectItem):
         self._img = None  # QImage to fetch color from
         self._np_img = None  # np array for fast pixels fetch
 
-    def set_image(self, path: str):
+    def set_image(self, image_path: str, autoseg_path:str):
         r = self.parentItem().pixmap().rect()
         self.setRect(QRectF(r))
-        self._pixmap.load(path)
+        
+        threshold = 190
+
+        create_mask(image_path, autoseg_path, threshold)
+
+        self._pixmap.load(autoseg_path)
         self._update_img()
 
     def _update_img(self):
@@ -45,8 +51,7 @@ class AutosegLayer(QGraphicsRectItem):
         painter.restore()
 
     def handle_click(self, pos: QPointF,diam: int):
-        #TODO: el argumento tiene que ser los píxeles del pincel, no un sólo punto.
-        #Después se hace la intersección y es ésta la que se emite 
+        #Se le pasa el punto y el diámetro del pincel. Después calcula que puntos del mask caen dentro
         if not self._autoseg_mode or not self._img:
             return
 

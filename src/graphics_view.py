@@ -78,8 +78,10 @@ class GraphicsView(QGraphicsView):
             self._scene.label_item.set_image(str(label_path))
         else:
             self._scene.label_item.clear()
-        if autoseg_path.exists():
-            self._scene.autoseg_item.set_image(str(autoseg_path))
+
+        self._scene.autoseg_item.set_image(str(image_path),str(autoseg_path))
+        #if autoseg_path.exists():
+        #    self._scene.autoseg_item.set_image(str(autoseg_path))
         self.fitInView(self._scene.image_item, Qt.AspectRatioMode.KeepAspectRatio)
         self.centerOn(self._scene.image_item)
 
