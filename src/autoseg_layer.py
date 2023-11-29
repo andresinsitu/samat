@@ -16,15 +16,20 @@ class AutosegLayer(QGraphicsRectItem):
         self._autoseg_mode = False
         self._img = None  # QImage to fetch color from
         self._np_img = None  # np array for fast pixels fetch
+        self._threshold_value = 190
+
+    
+    def set_threshold(self, value: int):
+        self._threshold_value = value
 
     def set_image(self, image_path: str, autoseg_path:str):
+        #TODO: tiene que haber una mejor opción que el clear pero de otra formo no logro que se me actualice
         r = self.parentItem().pixmap().rect()
         self.setRect(QRectF(r))
-        
-        threshold = 190
 
+        threshold = self._threshold_value
         create_mask(image_path, autoseg_path, threshold)
-
+        self.clear()
         self._pixmap.load(autoseg_path)
         self._update_img()
 

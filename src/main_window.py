@@ -69,20 +69,34 @@ class MainWindow(QMainWindow):
         self.ls_label_slider.valueChanged.connect(self.on_ls_label_slider_change)
 
         self.ls_autoseg_value = QLabel()
-        self.ls_autoseg_value.setText("autoseg opacity: 20%")
+        self.ls_autoseg_value.setText("Autoseg mask opacity: 20%")
 
         self.ls_autoseg_slider = QSlider()
         self.ls_autoseg_slider.setOrientation(Qt.Orientation.Horizontal)
         self.ls_autoseg_slider.setMinimum(0)
         self.ls_autoseg_slider.setMaximum(100)
-        self.ls_autoseg_slider.setSliderPosition(0)
+        self.ls_autoseg_slider.setSliderPosition(20)
         self.ls_autoseg_slider.valueChanged.connect(self.on_ls_autoseg_slider_change)
+
+        self.ls_threshold_value = QLabel()
+        self.ls_threshold_value.setText("Autoseg threshold : 190")
+
+        self.ls_threshold_slider = QSlider()
+        self.ls_threshold_slider.setOrientation(Qt.Orientation.Horizontal)
+        self.ls_threshold_slider.setMinimum(0)
+        self.ls_threshold_slider.setMaximum(12)
+        self.ls_threshold_slider.setSliderPosition(9)
+        self.ls_threshold_slider.setTickInterval(1)
+        self.ls_threshold_slider.setTickPosition(QSlider.TicksAbove)
+        self.ls_threshold_slider.valueChanged.connect(self.on_ls_threshold_slider_change)
 
         ls_vlay = QVBoxLayout(ls_group)
         ls_vlay.addWidget(self.ls_label_value)
         ls_vlay.addWidget(self.ls_label_slider)
         ls_vlay.addWidget(self.ls_autoseg_value)
         ls_vlay.addWidget(self.ls_autoseg_slider)
+        ls_vlay.addWidget(self.ls_threshold_value)
+        ls_vlay.addWidget(self.ls_threshold_slider)
 
         # AUTOSEG group
         autoseg_group = QGroupBox(self.tr("AUTOSEG"))
@@ -161,8 +175,16 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot(int)
     def on_ls_autoseg_slider_change(self, value: int):
-        self.ls_autoseg_value.setText(f"AUTOSEG opacity: {value}%")
+        self.ls_autoseg_value.setText(f"Autoseg mask opacity: {value}%")
         self._graphics_view.set_autoseg_opacity(value)
+
+    @pyqtSlot(int)
+    def on_ls_threshold_slider_change(self, value: int):
+        self.ls_threshold_value.setText(f"Autoseg threshold: {100+value*10}")
+        name = f"{self._image_stems[self._curr_id]}.png"
+        image_path = self._image_dir / name
+        autoseg_path = self._autoseg_dir / name
+        self._graphics_view.set_autoseg_threshold(str(image_path), str(autoseg_path),100+value*10)
 
     @pyqtSlot(int)
     def on_bs_slider_change(self, value: int):
@@ -190,6 +212,7 @@ class MainWindow(QMainWindow):
         image_path = self._image_dir / name
         label_path = self._label_dir / name
         autoseg_path = self._autoseg_dir / name
+
         self._graphics_view.load_sample(image_path, label_path, autoseg_path)
         self.ds_label.setText(f"Sample: {name}")
 

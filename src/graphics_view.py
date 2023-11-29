@@ -47,6 +47,10 @@ class GraphicsView(QGraphicsView):
     def set_autoseg_opacity(self, value: int):
         self._scene.autoseg_item.setOpacity(value / 100.0)
 
+    def set_autoseg_threshold(self, image_path: str, autoseg_path:str, value: int):
+        self._scene.autoseg_item.set_threshold(value)
+        self._scene.autoseg_item.set_image(image_path, autoseg_path)
+
     @pyqtSlot(bool)
     def handle_autoseg_signal(self, is_autoseg: bool):
         self._autoseg_mode = is_autoseg

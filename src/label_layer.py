@@ -80,7 +80,6 @@ class LabelLayer(QGraphicsRectItem):
         painter.restore()
 
     def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        #TODO: hacer que el emit sea de los píxeles del pincel
         if self._autoseg_mode and not self._erase_state:
             self._autoseg_signal.emit(event.pos(), self._brush_size)
         else:
@@ -90,7 +89,6 @@ class LabelLayer(QGraphicsRectItem):
         event.accept()
 
     def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        #TODO: hacer que el emit sea de los píxeles del pincel
         self._line.setP2(event.pos())
         if self._autoseg_mode and not self._erase_state:
             self._autoseg_signal.emit(event.pos(), self._brush_size)
